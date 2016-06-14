@@ -4,11 +4,13 @@ from accounting.forms import АдресаФорм, ТелефоныФорм
 
 from accounting.models import Должности, Адреса, ЕденицыИзмерения, Характеристики, Производители, ТипыУлиц, \
     ХарактеристикиМодели, ТипыТехники, МоделиТехники, Комнаты, Рабочиеместа, Комплекты, НазванияКомплекта, \
-    ЕденицыТехники, НазванияЕденицыТехники, Телефоны, Сотрудники, Поставщики, ТипыОрганизаций
+    ЕденицыТехники, НазванияЕденицыТехники, Телефоны, Сотрудники, Поставщики, ТипыОрганизаций, Накладные
 
 
 class АдресаАдмин(admin.ModelAdmin):
-    list_display = ('country', 'city')
+    #добавить if null
+    # list_display = ('country', 'city', 'street', 'house', 'apartment')
+    list_display = ('country', 'city', 'street', 'house')
     form = АдресаФорм
 
     def country(self, obj):
@@ -17,8 +19,20 @@ class АдресаАдмин(admin.ModelAdmin):
     def city(self, obj):
         return obj.адрес.split(',')[1]
 
+    def street(self, obj):
+        return obj.адрес.split(',')[2]
+
+    def house(self, obj):
+        return obj.адрес.split(',')[3]
+
+    def apartment(self, obj):
+        return obj.адрес.split(',')[4]
+
     city.short_description = 'Город'
     country.short_description = 'Страна'
+    street.short_descriptor = 'Улица'
+    house.short_descriptor = 'Дом'
+    apartment.short_descriptor = 'Квартира'
 
 
 class ТелефоныАдмин(admin.ModelAdmin):
@@ -97,6 +111,11 @@ class ТипыОрганизацийАдмин(admin.ModelAdmin):
     search_fields = ('название', 'аббревиатура',)
 
 
+class НакладныеАдмин(admin.ModelAdmin):
+    list_display = ('id_поставщика', 'дата_поставки',)
+    # search_fields = ('id_поставщика__название', 'дата_поставки',)
+
+
 admin.site.register(МоделиТехники, МоделиТехникиАдмин)
 admin.site.register(Должности, ДолжностиАдмин)
 admin.site.register(Адреса, АдресаАдмин)
@@ -116,6 +135,7 @@ admin.site.register(Телефоны, ТелефоныАдмин)
 admin.site.register(Сотрудники, СотрудникиАдмин)
 admin.site.register(Поставщики, ПоставщикиАдмин)
 admin.site.register(ТипыОрганизаций, ТипыОрганизацийАдмин)
+admin.site.register(Накладные, НакладныеАдмин)
 
 admin.site.unregister(Group)
 admin.site.unregister(User)

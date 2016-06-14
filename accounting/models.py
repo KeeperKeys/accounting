@@ -13,7 +13,7 @@ from django.db import models
 
 
 class Адреса(models.Model):
-    id_адреса = models.SmallIntegerField(primary_key=True)
+    id_адреса = models.AutoField(primary_key=True)
     адрес = models.CharField(max_length=200)
     id_типа_улицы = models.ForeignKey('ТипыУлиц', db_column='id_типа_улицы')
 
@@ -24,6 +24,7 @@ class Адреса(models.Model):
              self.id_типа_улицы.сокращенное_название,
              self.адрес.split(',')[2],
              self.адрес.split(',')[3]))
+        #добавить if null
              # self.адрес.split(',')[4]))
 
     class Meta:
@@ -185,16 +186,28 @@ class МоделиТехники(models.Model):
         verbose_name_plural = 'модели техники'
 
 
+# class Накладные(models.Model):
+#     id_field = models.IntegerField(db_column='id_\u043d\u0430\u043a\u043b\u0430\u0434\u043d\u043e\u0439')
+#     field_field = models.DateField(
+#         db_column='\u0434\u0430\u0442\u0430_\u043f\u043e\u0441\u0442\u0430\u0432\u043a\u0438')
+#     id_field_0 = models.ForeignKey('Поставщики',
+#                                    db_column='id_\u043f\u043e\u0441\u0442\u0430\u0432\u0449\u0438\u043a\u0430')
+#
+#     class Meta:
+#         managed = False
+#         db_table = 'Накладные'
+
+
 class Накладные(models.Model):
-    id_field = models.IntegerField(db_column='id_\u043d\u0430\u043a\u043b\u0430\u0434\u043d\u043e\u0439')
-    field_field = models.DateField(
-        db_column='\u0434\u0430\u0442\u0430_\u043f\u043e\u0441\u0442\u0430\u0432\u043a\u0438')
-    id_field_0 = models.ForeignKey('Поставщики',
-                                   db_column='id_\u043f\u043e\u0441\u0442\u0430\u0432\u0449\u0438\u043a\u0430')
+    id_накладной = models.AutoField(primary_key=True)
+    дата_поставки = models.DateField()
+    id_поставщика = models.ForeignKey('Поставщики', db_column='id_поставщика')
 
     class Meta:
-        managed = False
         db_table = 'Накладные'
+        unique_together = (('id_накладной', 'дата_поставки'),)
+        verbose_name = 'накладная'
+        verbose_name_plural = 'накладные'
 
 
 class ПППоНакладной(models.Model):
@@ -228,7 +241,7 @@ class ПППоНакладной(models.Model):
 #         db_table = 'Поставщики'
 
 class Поставщики(models.Model):
-    id_поставщика = models.SmallIntegerField(primary_key=True)
+    id_поставщика = models.AutoField(primary_key=True)
     id_адреса = models.ForeignKey('Адреса', db_column='id_адреса', verbose_name='Адрес')
     id_телефона = models.ForeignKey('Телефоны', db_column='id_телефона', verbose_name='Телефон')
     id_типа_организации = models.ForeignKey('ТипыОрганизаций', db_column='id_типа_организации',
@@ -238,7 +251,7 @@ class Поставщики(models.Model):
     название = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.id_типа_организации + ' "' + self.название + '"'
+        return self.id_типа_организации.аббревиатура + ' "' + self.название + '"'
 
     class Meta:
         db_table = 'Поставщики'
@@ -352,21 +365,34 @@ class Телефоны(models.Model):
         verbose_name_plural = 'телефоны'
 
 
+# class ТехникаПоНакладной(models.Model):
+#     id_field = models.ForeignKey('Накладные',
+#                                  db_column='id_\u043d\u0430\u043a\u043b\u0430\u0434\u043d\u043e\u0439')  # Field renamed to remove unsuitable characters. Field renamed because it ended with '_'.
+#     id_field_0 = models.ForeignKey('МоделиТехники',
+#                                    db_column='id_\u043c\u043e\u0434\u0435\u043b\u0438_\u0442\u0435\u0445\u043d\u0438\u043a\u0438')  # Field renamed to remove unsuitable characters. Field renamed because it ended with '_'. Field renamed because of name conflict.
+#     field_field = models.IntegerField(
+#         db_column='\u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e')  # Field renamed to remove unsuitable characters. Field renamed because it started with '_'. Field renamed because it ended with '_'.
+#     field_field_0 = models.DecimalField(
+#         db_column='\u0446\u0435\u043d\u0430_\u0437\u0430_\u0435\u0434\u0435\u043d\u0438\u0446\u0443', max_digits=8,
+#         decimal_places=2, blank=True,
+#         null=True)  # Field renamed to remove unsuitable characters. Field renamed because it started with '_'. Field renamed because it ended with '_'. Field renamed because of name conflict.
+#
+#     class Meta:
+#         managed = False
+#         db_table = 'ТехникаПоНакладной'
+
 class ТехникаПоНакладной(models.Model):
-    id_field = models.ForeignKey('Накладные',
-                                 db_column='id_\u043d\u0430\u043a\u043b\u0430\u0434\u043d\u043e\u0439')  # Field renamed to remove unsuitable characters. Field renamed because it ended with '_'.
-    id_field_0 = models.ForeignKey('МоделиТехники',
-                                   db_column='id_\u043c\u043e\u0434\u0435\u043b\u0438_\u0442\u0435\u0445\u043d\u0438\u043a\u0438')  # Field renamed to remove unsuitable characters. Field renamed because it ended with '_'. Field renamed because of name conflict.
-    field_field = models.IntegerField(
-        db_column='\u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e')  # Field renamed to remove unsuitable characters. Field renamed because it started with '_'. Field renamed because it ended with '_'.
-    field_field_0 = models.DecimalField(
-        db_column='\u0446\u0435\u043d\u0430_\u0437\u0430_\u0435\u0434\u0435\u043d\u0438\u0446\u0443', max_digits=8,
-        decimal_places=2, blank=True,
-        null=True)  # Field renamed to remove unsuitable characters. Field renamed because it started with '_'. Field renamed because it ended with '_'. Field renamed because of name conflict.
+    id_техника_по_накладной = models.AutoField(primary_key=True)
+    id_накладной = models.ForeignKey('Накладные', db_column='id_накладной')
+    id_модели_техники = models.ForeignKey('МоделиТехники', db_column='id_модели_техники')
+    количество = models.SmallIntegerField()
+    цена_за_еденицу = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'ТехникаПоНакладной'
+        unique_together = (('id_накладной', 'id_модели_техники'),)
+        verbose_name = 'техника по накладной'
+        verbose_name_plural = 'техника по накладной'
 
 
 class ТипыОрганизаций(models.Model):
@@ -409,7 +435,7 @@ class ТипыТехники(models.Model):
 
 
 class ТипыУлиц(models.Model):
-    id_типа_улицы = models.SmallIntegerField(primary_key=True)
+    id_типа_улицы = models.AutoField(primary_key=True)
     название = models.CharField(max_length=20)
     сокращенное_название = models.CharField(max_length=4)
 
