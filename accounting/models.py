@@ -229,14 +229,16 @@ class ПППоНакладной(models.Model):
 
 class Поставщики(models.Model):
     id_поставщика = models.SmallIntegerField(primary_key=True)
-    id_адреса = models.ForeignKey('Адреса', db_column='id_адреса')
-    id_телефона = models.ForeignKey('Телефоны', db_column='id_телефона')
+    id_адреса = models.ForeignKey('Адреса', db_column='id_адреса', verbose_name='Адрес')
+    id_телефона = models.ForeignKey('Телефоны', db_column='id_телефона', verbose_name='Телефон')
+    id_типа_организации = models.ForeignKey('ТипыОрганизаций', db_column='id_типа_организации',
+                                            verbose_name='Тип организации')
     другие_контактные_данные = models.TextField(blank=True, null=True)
     комментарий = models.TextField(blank=True, null=True)
     название = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.название
+        return self.id_типа_организации + ' "' + self.название + '"'
 
     class Meta:
         db_table = 'Поставщики'
@@ -365,6 +367,21 @@ class ТехникаПоНакладной(models.Model):
     class Meta:
         managed = False
         db_table = 'ТехникаПоНакладной'
+
+
+class ТипыОрганизаций(models.Model):
+    id_типа_организации = models.AutoField(primary_key=True)
+    аббревиатура = models.CharField(max_length=5)
+    название = models.CharField(max_length=70)
+
+    def __str__(self):
+        # return self.название + ' (' + self.аббревиатура + ')'
+        return self.аббревиатура
+
+    class Meta:
+        db_table = 'ТипыОрганизаций'
+        verbose_name = 'тип организации'
+        verbose_name_plural = 'типы организаций'
 
 
 class ТипыПП(models.Model):
