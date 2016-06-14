@@ -210,22 +210,38 @@ class ПППоНакладной(models.Model):
         db_table = 'ПППоНакладной'
 
 
+# class Поставщики(models.Model):
+#     id_field = models.IntegerField(db_column='id_\u043f\u043e\u0441\u0442\u0430\u0432\u0449\u0438\u043a\u0430',
+#                                    primary_key=True)
+#     id_field_0 = models.ForeignKey('Адреса', db_column='id_\u0430\u0434\u0440\u0435\u0441\u0430')
+#     id_field_1 = models.ForeignKey('Телефоны', db_column='id_\u0442\u0435\u043b\u0435\u0444\u043e\u043d\u0430')
+#     field_field = models.TextField(
+#         db_column='\u0434\u0440\u0443\u0433\u0438\u0435_\u043a\u043e\u043d\u0442\u0430\u043a\u0442\u043d\u044b\u0435_\u0434\u0430\u043d\u043d\u044b\u0435',
+#         blank=True)
+#     field_field_0 = models.TextField(db_column='\u043a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0439',
+#                                      blank=True)
+#     field_field_1 = models.CharField(db_column='\u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435',
+#                                      max_length=300)  # Field renamed to remove unsuitable characters. Field renamed because it started with '_'. Field renamed because it ended with '_'. Field renamed because of name conflict.
+#
+#     class Meta:
+#         managed = False
+#         db_table = 'Поставщики'
+
 class Поставщики(models.Model):
-    id_field = models.IntegerField(db_column='id_\u043f\u043e\u0441\u0442\u0430\u0432\u0449\u0438\u043a\u0430',
-                                   primary_key=True)
-    id_field_0 = models.ForeignKey('Адреса', db_column='id_\u0430\u0434\u0440\u0435\u0441\u0430')
-    id_field_1 = models.ForeignKey('Телефоны', db_column='id_\u0442\u0435\u043b\u0435\u0444\u043e\u043d\u0430')
-    field_field = models.TextField(
-        db_column='\u0434\u0440\u0443\u0433\u0438\u0435_\u043a\u043e\u043d\u0442\u0430\u043a\u0442\u043d\u044b\u0435_\u0434\u0430\u043d\u043d\u044b\u0435',
-        blank=True)
-    field_field_0 = models.TextField(db_column='\u043a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0439',
-                                     blank=True)
-    field_field_1 = models.CharField(db_column='\u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435',
-                                     max_length=300)  # Field renamed to remove unsuitable characters. Field renamed because it started with '_'. Field renamed because it ended with '_'. Field renamed because of name conflict.
+    id_поставщика = models.SmallIntegerField(primary_key=True)
+    id_адреса = models.ForeignKey('Адреса', db_column='id_адреса')
+    id_телефона = models.ForeignKey('Телефоны', db_column='id_телефона')
+    другие_контактные_данные = models.TextField(blank=True, null=True)
+    комментарий = models.TextField(blank=True, null=True)
+    название = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.название
 
     class Meta:
-        managed = False
         db_table = 'Поставщики'
+        verbose_name = 'поставщик'
+        verbose_name_plural = 'поставщики'
 
 
 class ПрограммныеПродукты(models.Model):

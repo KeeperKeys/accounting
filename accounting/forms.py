@@ -61,6 +61,8 @@ class ТелефоныФорм(forms.ModelForm):
         model = Телефоны
         fields = ('country_code', 'reg_oper_code', 'phone')
 
+class Поставщики
+
 
 # class МоделиТехникиФорм(forms.ModelForm):
 #     mm = forms.ModelMultipleChoiceField(
