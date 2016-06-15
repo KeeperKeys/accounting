@@ -285,8 +285,9 @@ class Списания(models.Model):
 
 class СписаннаяТехника(models.Model):
     id_списанной_техники = models.AutoField(primary_key=True)
-    id_экземпляра_техники = models.ForeignKey('ЭкземплярыТехники', db_column='id_экземпляра_техники')
-    id_списания = models.ForeignKey('Списания', db_column='id_списания')
+    id_экземпляра_техники = models.ForeignKey('ЭкземплярыТехники', db_column='id_экземпляра_техники',
+                                              verbose_name='Экземпляр техники')
+    id_списания = models.ForeignKey('Списания', db_column='id_списания', verbose_name="Списание")
     причина = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -315,7 +316,8 @@ class Телефоны(models.Model):
 class ТехникаПоНакладной(models.Model):
     id_техники_по_накладной = models.AutoField(primary_key=True)
     id_накладной = models.ForeignKey('Накладные', db_column='id_накладной', verbose_name='Накладная')
-    id_модели_техники = models.ForeignKey('МоделиТехники', db_column='id_модели_техники', verbose_name='Модель техники')
+    id_модели_техники = models.ForeignKey('МоделиТехники', db_column='id_модели_техники',
+                                          verbose_name='Модель техники')
     количество = models.SmallIntegerField()
     цена_за_еденицу = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, )
 
