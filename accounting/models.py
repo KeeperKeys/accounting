@@ -10,6 +10,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.forms import widgets
 
 
 class Адреса(models.Model):
@@ -18,14 +19,15 @@ class Адреса(models.Model):
     id_типа_улицы = models.ForeignKey('ТипыУлиц', db_column='id_типа_улицы')
 
     def __str__(self):
-        return ", ".join(
+        string = ", ".join(
             (self.адрес.split(',')[0],
              self.адрес.split(',')[1],
              self.id_типа_улицы.сокращенное_название,
              self.адрес.split(',')[2],
              self.адрес.split(',')[3]))
-        #добавить if null
-             # self.адрес.split(',')[4]))
+        if len(self.адрес.split(',')) > 4:
+            string += ',' + self.адрес.split(',')[4]
+        return string
 
     class Meta:
         db_table = 'Адреса'
@@ -46,15 +48,6 @@ class Должности(models.Model):
         verbose_name_plural = 'должности'
 
 
-# class ЕденицыИзмерения(models.Model):
-#     id_field = models.IntegerField(db_column='id_\u0435\u0434\u0435\u043d\u0438\u0446\u044b_\u0438\u0437\u043c\u0435\u0440\u0435\u043d\u0438\u044f', primary_key=True)
-#     field_field = models.CharField(db_column='\u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435', max_length=90, blank=True)
-#     field_field_0 = models.CharField(db_column='\u0441\u043e\u043a\u0440\u0430\u0449\u0435\u043d\u043d\u043e\u0435_\u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435', max_length=30, blank=True)
-#     class Meta:
-#         managed = False
-#         db_table = 'ЕденицыИзмерения'
-
-
 class ЕденицыИзмерения(models.Model):
     id_еденицы_измерения = models.AutoField(primary_key=True)
     название = models.CharField(max_length=30, blank=True, null=True)
@@ -67,17 +60,6 @@ class ЕденицыИзмерения(models.Model):
         db_table = 'ЕденицыИзмерения'
         verbose_name = 'единица измерения'
         verbose_name_plural = 'единицы измерения'
-
-
-# class ЕденицыТехники(models.Model):
-#     id_field = models.IntegerField(
-#         db_column='id_\u0435\u0434\u0435\u043d\u0438\u0446\u044b_\u0442\u0435\u0445\u043d\u0438\u043a\u0438',
-#         primary_key=True)
-#     id_field_0 = models.ForeignKey('Комплекты', db_column='id_\u043a\u043e\u043c\u043f\u043b\u0435\u043a\u0442\u0430')
-#
-#     class Meta:
-#         managed = False
-#         db_table = 'ЕденицыТехники'
 
 
 class ЕденицыТехники(models.Model):
@@ -108,16 +90,6 @@ class НазванияЕденицыТехники(models.Model):
         verbose_name_plural = 'названия единицы техники'
 
 
-# class Комнаты(models.Model):
-#     id_field = models.IntegerField(db_column='id_\u043a\u043e\u043c\u043d\u0430\u0442\u044b', primary_key=True)
-#     field_field = models.CharField(
-#         db_column='\u043d\u043e\u043c\u0435\u0440_\u043a\u043e\u043c\u043d\u0430\u0442\u044b', max_length=15)
-#
-#     class Meta:
-#         managed = False
-#         db_table = 'Комнаты'
-
-
 class Комнаты(models.Model):
     id_комнаты = models.AutoField(primary_key=True)
     номер_комнаты = models.CharField(max_length=5)
@@ -131,20 +103,11 @@ class Комнаты(models.Model):
         verbose_name_plural = 'комнаты'
 
 
-# class Комплекты(models.Model):
-#     id_field = models.IntegerField(db_column='id_\u043a\u043e\u043c\u043f\u043b\u0435\u043a\u0442\u0430',
-#                                    primary_key=True)
-#     id_field_0 = models.ForeignKey('Рабочиеместа',
-#                                    db_column='id_\u0440\u0430\u0431\u043e\u0447\u0435\u0433\u043e_\u043c\u0435\u0441\u0442\u0430')
-#
-#     class Meta:
-#         managed = False
-#         db_table = 'Комплекты'
-
 class Комплекты(models.Model):
     id_комплекта = models.AutoField(primary_key=True)
     id_рабочего_места = models.ForeignKey('Рабочиеместа', db_column='id_рабочего_места', verbose_name='рабочее место')
-    id_названия_комплекта = models.ForeignKey('НазванияКомплекта', db_column='id_названия_комплекта', verbose_name='название комплекта')
+    id_названия_комплекта = models.ForeignKey('НазванияКомплекта', db_column='id_названия_комплекта',
+                                              verbose_name='название комплекта')
 
     def __str__(self):
         return '{0}, комплект "{1}"'.format(self.id_рабочего_места, self.id_названия_комплекта)
@@ -168,14 +131,13 @@ class НазванияКомплекта(models.Model):
         verbose_name_plural = 'названия комплекта'
 
 
-
 class МоделиТехники(models.Model):
     "добавить свзяь многие ко многим"
     id_модели_техники = models.AutoField(primary_key=True)
     название = models.CharField(max_length=100)
     id_производителя = models.ForeignKey('Производители', db_column='id_производителя', verbose_name='Производитель')
     id_типа_техники = models.ForeignKey('ТипыТехники', db_column='id_типа_техники', verbose_name='Тип техники')
-    #haract = models.ManyToManyField('Характеристики', through='ХарактеристикиМодели')
+    # haract = models.ManyToManyField('Характеристики', through='ХарактеристикиМодели')
 
     def __str__(self):
         return '{0} {1} {2}'.format(self.название, self.id_производителя.название, self.id_типа_техники.название)
@@ -186,26 +148,19 @@ class МоделиТехники(models.Model):
         verbose_name_plural = 'модели техники'
 
 
-# class Накладные(models.Model):
-#     id_field = models.IntegerField(db_column='id_\u043d\u0430\u043a\u043b\u0430\u0434\u043d\u043e\u0439')
-#     field_field = models.DateField(
-#         db_column='\u0434\u0430\u0442\u0430_\u043f\u043e\u0441\u0442\u0430\u0432\u043a\u0438')
-#     id_field_0 = models.ForeignKey('Поставщики',
-#                                    db_column='id_\u043f\u043e\u0441\u0442\u0430\u0432\u0449\u0438\u043a\u0430')
-#
-#     class Meta:
-#         managed = False
-#         db_table = 'Накладные'
-
-
 class Накладные(models.Model):
     id_накладной = models.AutoField(primary_key=True)
     дата_поставки = models.DateField()
-    id_поставщика = models.ForeignKey('Поставщики', db_column='id_поставщика')
+    id_поставщика = models.ForeignKey('Поставщики', db_column='id_поставщика', verbose_name='Поставщик')
+    номер_накладной = models.CharField(max_length=20)
+
+    def __str__(self):
+        return "{0} ({1}) {2:%d-%m-%Y}".format(self.номер_накладной, self.id_поставщика, self.дата_поставки)
 
     class Meta:
         db_table = 'Накладные'
-        unique_together = (('id_накладной', 'дата_поставки'),)
+        # unique_together = (('id_накладной', 'дата_поставки'),)
+        unique_together = ('номер_накладной',)
         verbose_name = 'накладная'
         verbose_name_plural = 'накладные'
 
@@ -222,23 +177,6 @@ class ПППоНакладной(models.Model):
         managed = False
         db_table = 'ПППоНакладной'
 
-
-# class Поставщики(models.Model):
-#     id_field = models.IntegerField(db_column='id_\u043f\u043e\u0441\u0442\u0430\u0432\u0449\u0438\u043a\u0430',
-#                                    primary_key=True)
-#     id_field_0 = models.ForeignKey('Адреса', db_column='id_\u0430\u0434\u0440\u0435\u0441\u0430')
-#     id_field_1 = models.ForeignKey('Телефоны', db_column='id_\u0442\u0435\u043b\u0435\u0444\u043e\u043d\u0430')
-#     field_field = models.TextField(
-#         db_column='\u0434\u0440\u0443\u0433\u0438\u0435_\u043a\u043e\u043d\u0442\u0430\u043a\u0442\u043d\u044b\u0435_\u0434\u0430\u043d\u043d\u044b\u0435',
-#         blank=True)
-#     field_field_0 = models.TextField(db_column='\u043a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0439',
-#                                      blank=True)
-#     field_field_1 = models.CharField(db_column='\u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435',
-#                                      max_length=300)  # Field renamed to remove unsuitable characters. Field renamed because it started with '_'. Field renamed because it ended with '_'. Field renamed because of name conflict.
-#
-#     class Meta:
-#         managed = False
-#         db_table = 'Поставщики'
 
 class Поставщики(models.Model):
     id_поставщика = models.AutoField(primary_key=True)
@@ -300,7 +238,6 @@ class Рабочиеместа(models.Model):
 
 
 class Сотрудники(models.Model):
-
     Полы = (
         ('м', 'Мужской'),
         ('ж', 'Женский'),
@@ -382,11 +319,14 @@ class Телефоны(models.Model):
 #         db_table = 'ТехникаПоНакладной'
 
 class ТехникаПоНакладной(models.Model):
-    id_техника_по_накладной = models.AutoField(primary_key=True)
-    id_накладной = models.ForeignKey('Накладные', db_column='id_накладной')
-    id_модели_техники = models.ForeignKey('МоделиТехники', db_column='id_модели_техники')
+    id_техники_по_накладной = models.AutoField(primary_key=True)
+    id_накладной = models.ForeignKey('Накладные', db_column='id_накладной', verbose_name='Накладная')
+    id_модели_техники = models.ForeignKey('МоделиТехники', db_column='id_модели_техники', verbose_name='Модель техники')
     количество = models.SmallIntegerField()
-    цена_за_еденицу = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    цена_за_еденицу = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, )
+
+    def __str__(self):
+        return "{0} {1}".format(self.id_накладной.номер_накладной, self.id_модели_техники)
 
     class Meta:
         db_table = 'ТехникаПоНакладной'
@@ -411,14 +351,13 @@ class ТипыОрганизаций(models.Model):
 
 
 class ТипыПП(models.Model):
-    id_field = models.IntegerField(db_column='id_\u0442\u0438\u043f\u0430_\u041f\u041f',
-                                   primary_key=True)  # Field name made lowercase. Field renamed to remove unsuitable characters. Field renamed because it ended with '_'.
-    field_field = models.CharField(db_column='\u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435', max_length=240,
-                                   blank=True)  # Field renamed to remove unsuitable characters. Field renamed because it started with '_'. Field renamed because it ended with '_'.
+    id_типа_пп = models.SmallIntegerField(db_column='id_типа_ПП', primary_key=True)
+    название = models.CharField(max_length=80, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'ТипыПП'
+        verbose_name = 'тип программного продукта'
+        verbose_name_plural = 'типы программных продуктов'
 
 
 class ТипыТехники(models.Model):
@@ -484,8 +423,6 @@ class Характеристики(models.Model):
 
 
 class ХарактеристикиМодели(models.Model):
-    """Дополнительное уникальное поле id_характеристики_модели, но в модели оно помечено как pk"""
-    # сделать первичный ключ id новое поле. чертова джанга
     id_характеристики_модели = models.AutoField(primary_key=True)
     id_характеристики = models.ForeignKey('Характеристики', db_column='id_характеристики',
                                           verbose_name='название характеристики')
@@ -505,14 +442,20 @@ class ХарактеристикиМодели(models.Model):
 
 class ЭкземплярыТехники(models.Model):
     id_экземпляра_техники = models.AutoField(primary_key=True)
-    id_еденицы_техники = models.ForeignKey('ЕденицыТехники', db_column='id_еденицы_техники')
+    id_еденицы_техники = models.ForeignKey('ЕденицыТехники', db_column='id_еденицы_техники',
+                                           verbose_name="Еденица техники")
     заводской_код = models.CharField(max_length=20, blank=True, null=True)
     инвентарный_номер = models.CharField(max_length=20)
     id_накладной = models.ForeignKey('ТехникаПоНакладной', db_column='id_накладной',
-                                     related_name='fk_id_накладной_модели_техники_1')
+                                     related_name='fk_id_накладной_модели_техники_1',
+                                     verbose_name="Накладная")
     id_модели_техники = models.ForeignKey('ТехникаПоНакладной', db_column='id_модели_техники',
-                                          related_name='fk_id_накладной_модели_техники_2')
+                                          related_name='fk_id_накладной_модели_техники_2',
+                                          verbose_name='Модель техники')
     дата_гарантии = models.DateField(blank=True, null=True)
+
+    def __str__(self):
+        return '{0} {1} {2}'.format(self.id_модели_техники, self.инвентарный_номер, self.дата_гарантии)
 
     class Meta:
         db_table = 'ЭкземплярыТехники'
