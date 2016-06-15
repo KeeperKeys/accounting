@@ -275,7 +275,7 @@ class Списания(models.Model):
     заголовок = models.CharField(max_length=50)
 
     def __str__(self):
-        return "{0} {1}".format(self.id_сотрудника, self.дата)
+        return "{0} {1:%d-%m-%Y}".format(self.id_сотрудника, self.дата)
 
     class Meta:
         db_table = 'Списания'
@@ -448,7 +448,7 @@ class ЭкземплярыТехники(models.Model):
     дата_гарантии = models.DateField(blank=True, null=True)
 
     def __str__(self):
-        return '{0} {1} {2} {3}'.format(self.id_техники_по_накладной.id_накладной.номер_накладной,
+        return '{0} {1} {2} {3:%d-%m-%Y}'.format(self.id_техники_по_накладной.id_накладной.номер_накладной,
                                         self.id_техники_по_накладной.id_модели_техники,
                                         self.инвентарный_номер,
                                         self.дата_гарантии)
