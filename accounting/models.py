@@ -69,7 +69,7 @@ class ЕденицыТехники(models.Model):
                                                     verbose_name='название еденицы техники')
 
     def __str__(self):
-        return "{0} ".format(self.id_названия_еденицы_техники, self.id_комплекта)
+        return "{0} {1}".format(self.id_названия_еденицы_техники, self.id_комплекта)
 
     class Meta:
         db_table = 'ЕденицыТехники'
@@ -326,7 +326,7 @@ class ТехникаПоНакладной(models.Model):
     цена_за_еденицу = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, )
 
     def __str__(self):
-        return "{0} {1}".format(self.id_накладной.номер_накладной, self.id_модели_техники)
+        return "{0} {1}, количество {2}".format(self.id_накладной.номер_накладной, self.id_модели_техники, self.количество)
 
     class Meta:
         db_table = 'ТехникаПоНакладной'
@@ -446,16 +446,15 @@ class ЭкземплярыТехники(models.Model):
                                            verbose_name="Еденица техники")
     заводской_код = models.CharField(max_length=20, blank=True, null=True)
     инвентарный_номер = models.CharField(max_length=20)
-    id_накладной = models.ForeignKey('ТехникаПоНакладной', db_column='id_накладной',
-                                     related_name='fk_id_накладной_модели_техники_1',
-                                     verbose_name="Накладная")
-    id_модели_техники = models.ForeignKey('ТехникаПоНакладной', db_column='id_модели_техники',
-                                          related_name='fk_id_накладной_модели_техники_2',
-                                          verbose_name='Модель техники')
+    id_техники_по_накладной = models.ForeignKey('ТехникаПоНакладной', db_column='id_техники_по_накладной',
+                                                verbose_name="Техника по накладной")
     дата_гарантии = models.DateField(blank=True, null=True)
 
     def __str__(self):
-        return '{0} {1} {2}'.format(self.id_модели_техники, self.инвентарный_номер, self.дата_гарантии)
+        return '{0} {1} {2} {3}'.format(self.id_техники_по_накладной.id_накладной.номер_накладной,
+                                        self.id_техники_по_накладной.id_модели_техники,
+                                        self.инвентарный_номер,
+                                        self.дата_гарантии)
 
     class Meta:
         db_table = 'ЭкземплярыТехники'
