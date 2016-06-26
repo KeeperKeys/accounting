@@ -68,3 +68,5 @@ class ТелефоныФорм(forms.ModelForm):
 #     mm = forms.ModelMultipleChoiceField(
 #         queryset=Характеристики.objects.all(),
 #         widget=FilteredSelectMultiple(_('ss'), False, attrs={'rows':'10'}))
+
+# class ПоставщикиФорм

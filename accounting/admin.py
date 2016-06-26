@@ -10,7 +10,7 @@ from accounting.models import Должности, Адреса, ЕденицыИ
 
 
 class АдресаАдмин(admin.ModelAdmin):
-    list_display = ('country', 'city', 'street', 'house', 'apartment')
+    list_display = ('country', 'city', 'id_типа_улицы', 'street', 'house', 'apartment')
     form = АдресаФорм
 
     def country(self, obj):
@@ -26,13 +26,13 @@ class АдресаАдмин(admin.ModelAdmin):
         return obj.адрес.split(',')[3]
 
     def apartment(self, obj):
-        if len(obj.адрес.split(','))>4:
+        if len(obj.адрес.split(',')) > 4:
             return obj.адрес.split(',')[4]
         else:
             return ""
 
-    city.short_description = 'Город'
     country.short_description = 'Страна'
+    city.short_description = 'Город'
     street.short_descriptor = 'Улица'
     house.short_descriptor = 'Дом'
     apartment.short_descriptor = 'Квартира'
@@ -40,6 +40,13 @@ class АдресаАдмин(admin.ModelAdmin):
 
 class ТелефоныАдмин(admin.ModelAdmin):
     form = ТелефоныФорм
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['some_var'] = 'This is what I want to show'
+        return super(ТелефоныАдмин, self).changelist_view(request, extra_context=extra_context)
+
+    #def make_pdf
 
 
 class ДолжностиАдмин(admin.ModelAdmin):
@@ -129,6 +136,7 @@ class НакладныеАдмин(admin.ModelAdmin):
 class ЭкземплярыТехникиАдмин(admin.ModelAdmin):
     list_display = ('_модель_техники', "_еденица_техники", 'инвентарный_номер', '_накладная', 'заводской_код',
                     'дата_гарантии',)
+    search_fields = ('инвентарный_номер',)
 
     def _модель_техники(self, obj):
         return str(obj.id_техники_по_накладной.id_модели_техники)
@@ -215,5 +223,5 @@ admin.site.register(УстановленныеПП, УстановленныеП
 admin.site.register(Списания, СписанияАдмин)
 admin.site.register(СписаннаяТехника, СписаннаяТехникаАдмин)
 
-admin.site.unregister(Group)
-admin.site.unregister(User)
+# admin.site.unregister(Group)
+# admin.site.unregister(User)
