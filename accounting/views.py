@@ -176,6 +176,58 @@ def sample_page(request, model_title):
         for obj in model.objects.all().order_by('id_типа_организации'):
             writer.writerow([obj.id_типа_организации, obj.аббревиатура, obj.название])
 
+    elif res == 'ТипыПП':
+        response['Content-Disposition'] = 'attachment; filename="TypesOfSoftware.csv"'
+        writer.writerow(['id типа пп', 'Название'])
+        model = accounting.models.ТипыПП
+        for obj in model.objects.all().order_by('id_типа_пп'):
+            writer.writerow([obj.id_типа_пп, obj.название])
+
+    elif res == 'ТипыТехники':
+        response['Content-Disposition'] = 'attachment; filename="TypesOfVehicles.csv"'
+        writer.writerow(['id типа техники', 'Название'])
+        model = accounting.models.ТипыТехники
+        for obj in model.objects.all().order_by('id_типа_техники'):
+            writer.writerow([obj.id_типа_техники, obj.название])
+
+    elif res == 'ТипыУлиц':
+        response['Content-Disposition'] = 'attachment; filename="TypesOfStreets.csv"'
+        writer.writerow(['id типа улицы', 'Название', 'Сокращенное название'])
+        model = accounting.models.ТипыУлиц
+        for obj in model.objects.all().order_by('id_типа_улицы'):
+            writer.writerow([obj.id_типа_улицы, obj.название, obj.сокращенное_название])
+
+    elif res == 'УстановленныеПП':
+        response['Content-Disposition'] = 'attachment; filename="InstalledSoftware.csv"'
+        writer.writerow(['id установленного пп', 'пп по накладной', 'Серийный_ключ', 'Экземпляр техники'])
+        model = accounting.models.УстановленныеПП
+        for obj in model.objects.all().order_by('id_установленногопп'):
+            writer.writerow([obj.id_установленногопп, obj.id_пп_по_накладной, obj.серийный_ключ,
+                             obj.id_экземпляра_техники])
+
+    elif res == 'Характеристики':
+        response['Content-Disposition'] = 'attachment; filename="Characteristics.csv"'
+        writer.writerow(['id характеристики', 'Название', 'Единица измерения'])
+        model = accounting.models.Характеристики
+        for obj in model.objects.all().order_by('id_характеристики'):
+            writer.writerow([obj.id_характеристики, obj.название, obj.id_еденицы_измерения])
+
+    elif res == 'ХарактеристикиМодели':
+        response['Content-Disposition'] = 'attachment; filename="CharacteristicsOfModel.csv"'
+        writer.writerow(['id характеристики модели', 'Характеристика', 'Модель техники', 'Значение'])
+        model = accounting.models.ХарактеристикиМодели
+        for obj in model.objects.all().order_by('id_характеристики_модели'):
+            writer.writerow([obj.id_характеристики_модели, obj.id_характеристики, obj.id_модели_техники, obj.значение])
+
+    elif res == 'ЭкземплярыТехники':
+        response['Content-Disposition'] = 'attachment; filename="EquipmentItems.csv"'
+        writer.writerow(['id экземпляра техники', 'Единица техники', 'Заводской код', 'Инвентарный номер',
+                         'Техника по накладной', 'Дата гарантии'])
+        model = accounting.models.ЭкземплярыТехники
+        for obj in model.objects.all().order_by('id_экземпляра_техники'):
+            writer.writerow([obj.id_экземпляра_техники, obj.id_еденицы_техники, obj.заводской_код,
+                             obj.инвентарный_номер, obj.id_техники_по_накладной, obj.дата_гарантии])
+
     return response
 
     # elif res == 'НазванияЕденицыТехники':
