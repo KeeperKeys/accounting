@@ -46,7 +46,7 @@ class ТелефоныАдмин(admin.ModelAdmin):
         extra_context['some_var'] = 'This is what I want to show'
         return super(ТелефоныАдмин, self).changelist_view(request, extra_context=extra_context)
 
-    #def make_pdf
+        # def make_pdf
 
 
 class ДолжностиАдмин(admin.ModelAdmin):
@@ -194,6 +194,15 @@ class СписаннаяТехникаАдмин(admin.ModelAdmin):
     _id_списания.short_description = 'Списание'
     _id_экземпляра_техники.short_description = 'Экземпляр техники'
 
+
+class КомплектыАдмин(admin.ModelAdmin):
+    list_display = ('id_рабочего_места', 'id_названия_комплекта',)
+
+
+class РабочиеместаАдмин(admin.ModelAdmin):
+    list_display = ('id_комнаты', 'номер_рабочего_места')
+
+
 admin.site.register(МоделиТехники, МоделиТехникиАдмин)
 admin.site.register(Должности, ДолжностиАдмин)
 admin.site.register(Адреса, АдресаАдмин)
@@ -204,8 +213,8 @@ admin.site.register(ТипыУлиц, ТипыУлицАдмин)
 admin.site.register(ХарактеристикиМодели, ХарактеристикиМоделиАдмин)
 admin.site.register(ТипыТехники, ТипыТехникиАдмин)
 admin.site.register(Комнаты)
-admin.site.register(Рабочиеместа)
-admin.site.register(Комплекты)
+admin.site.register(Рабочиеместа, РабочиеместаАдмин)
+admin.site.register(Комплекты, КомплектыАдмин)
 admin.site.register(НазванияКомплекта)
 admin.site.register(ЕденицыТехники, ЕденицыТехникиАдмин)
 admin.site.register(НазванияЕденицыТехники)

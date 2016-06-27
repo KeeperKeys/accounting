@@ -2,13 +2,19 @@
 {% extends "admin/change_list.html" %}
 {% load i18n %}
 {% block object-tools %}
-{#<h1>Hey!</h1>#}
+    {{ block.super }}
     <script type="text/javascript" charset=“utf-8”>
                 (function($) { $(document).ready(function() {
-                                        $(".paginator").after('<div class="submit-row"><input type="submit" value="Печать" formaction="csv/" style="float: right"></div>');
+{#         for wpadmin           #}
+                                        $(".paginator").after('<div class="submit-row"><input type="submit" ' +
+                                                'value="Печать" formaction="csv/" style="display: inline-block; float: right; vertical-align: middle; margin-top: 1.2%"></div>');
                 });
                 })(django.jQuery);
+
+{#          without wpadmin #}
+{#    $(".paginator").after('<div class="submit-row"><input type="submit" ' +#}
+{#                                                'value="Печать" formaction="csv/" style="float: right;"></div>');#}
+{#                });#}
+{#                })(django.jQuery);#}
         </script>
-{#    <input type="button" value="Some" style="float: right">#}
-{#    {{ some_var }}#}
 {% endblock %}
