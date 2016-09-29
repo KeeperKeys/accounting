@@ -13,10 +13,11 @@ class АдресаФорм(forms.ModelForm):
         super(АдресаФорм, self).__init__(*args, **kwargs)
         if self.instance.адрес:
             self.initial['country'] = self.instance.адрес.split(',')[0]
-            self.initial['city'] = self.instance.адрес.split(',')[1]
-            self.initial['street'] = self.instance.адрес.split(',')[2]
-            self.initial['house'] = self.instance.адрес.split(',')[3]
-            self.initial['apartment'] = self.instance.адрес.split(',')[4]
+            self.initial['city'] = self.instance.адрес.split(',')[1][1:]
+            self.initial['street'] = self.instance.адрес.split(',')[2][1:]
+            self.initial['house'] = self.instance.адрес.split(',')[3][1:]
+            self.initial['apartment'] = self.instance.адрес.split(',')[4][1:] \
+                if (len(self.instance.адрес.split(',')) > 4) else ""
 
     def save(self, commit=True):
         instance = super(АдресаФорм, self).save(commit=False)
@@ -61,12 +62,12 @@ class ТелефоныФорм(forms.ModelForm):
         model = Телефоны
         fields = ('country_code', 'reg_oper_code', 'phone')
 
-# class Поставщики
+        # class Поставщики
 
 
-# class МоделиТехникиФорм(forms.ModelForm):
-#     mm = forms.ModelMultipleChoiceField(
-#         queryset=Характеристики.objects.all(),
-#         widget=FilteredSelectMultiple(_('ss'), False, attrs={'rows':'10'}))
+        # class МоделиТехникиФорм(forms.ModelForm):
+        #     mm = forms.ModelMultipleChoiceField(
+        #         queryset=Характеристики.objects.all(),
+        #         widget=FilteredSelectMultiple(_('ss'), False, attrs={'rows':'10'}))
 
-# class ПоставщикиФорм
+        # class ПоставщикиФорм

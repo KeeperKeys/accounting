@@ -1,6 +1,8 @@
 # from __future__ import unicode_literals
 
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 
 
 class Адреса(models.Model):
@@ -145,7 +147,7 @@ class Накладные(models.Model):
     номер_накладной = models.CharField(max_length=20, unique=True)
 
     def __str__(self):
-        return "{0} ({1}) {2:%d-%m-%Y}".format(self.номер_накладной, self.id_поставщика, self.дата_поставки)
+        return "{2:%d-%m-%Y} {0} ({1}) ".format(self.номер_накладной, self.id_поставщика, self.дата_поставки)
 
     class Meta:
         db_table = 'Накладные'
@@ -159,8 +161,9 @@ class ПППоНакладной(models.Model):
     id_пп_по_накладной = models.AutoField(db_column='id_ПП_по_накладной', primary_key=True)
     id_накладной = models.ForeignKey('Накладные', db_column='id_накладной', verbose_name='Накладная')
     id_пп = models.ForeignKey('ПрограммныеПродукты', db_column='id_ПП', verbose_name='Программный продукт')
-    цена_за_еденицу = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
-    количество = models.SmallIntegerField()
+    количество = models.SmallIntegerField(validators=[MinValueValidator(0, 'Убедитесь, что это значение больше нуля')])
+    цена_за_еденицу = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True,
+                                          validators=[MinValueValidator(0, 'Убедитесь, что это значение больше нуля')])
 
     def __str__(self):
         return "{0} {1}, количество {2}".format(self.id_накладной.номер_накладной, self.id_пп, self.количество)
@@ -309,8 +312,9 @@ class ТехникаПоНакладной(models.Model):
     id_накладной = models.ForeignKey('Накладные', db_column='id_накладной', verbose_name='Накладная')
     id_модели_техники = models.ForeignKey('МоделиТехники', db_column='id_модели_техники',
                                           verbose_name='Модель техники')
-    количество = models.SmallIntegerField()
-    цена_за_еденицу = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, )
+    количество = models.SmallIntegerField(validators=[MinValueValidator(0, 'Убедитесь, что это значение больше нуля')])
+    цена_за_еденицу = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True,
+                                          validators=[MinValueValidator(0, 'Убедитесь, что это значение больше нуля')])
 
     def __str__(self):
         return "{0} {1}, количество {2}".format(self.id_накладной.номер_накладной, self.id_модели_техники,
@@ -339,7 +343,7 @@ class ТипыОрганизаций(models.Model):
 
 
 class ТипыПП(models.Model):
-    id_типа_пп = models.SmallIntegerField(db_column='id_типа_ПП', primary_key=True)
+    id_типа_пп = models.AutoField(db_column='id_типа_ПП', primary_key=True)
     название = models.CharField(max_length=80, blank=True, null=True)
 
     def __str__(self):
@@ -378,10 +382,21 @@ class ТипыУлиц(models.Model):
         verbose_name_plural = 'типы улиц'
 
 
+def validate_count_pp(value):
+    instPP = УстановленныеПП.objects.filter(id_пп_по_накладной=value).count()
+    maxPoNakl = ПППоНакладной.objects.get(id_пп_по_накладной=value).количество
+    print(value)
+    print(instPP)
+    print(maxPoNakl)
+    if maxPoNakl <= instPP:
+        raise ValidationError('Нельзя установить ПП в количестве больше купленных')
+
+
 class УстановленныеПП(models.Model):
     id_установленногопп = models.AutoField(db_column='id_установленногоПП', primary_key=True)
     id_пп_по_накладной = models.ForeignKey('ПППоНакладной', db_column='id_ПП_по_накладной',
-                                           verbose_name='Программный продукт по накладной')
+                                           verbose_name='Программный продукт по накладной',
+                                           validators=[validate_count_pp])
     серийный_ключ = models.CharField(max_length=30)
     id_экземпляра_техники = models.ForeignKey('ЭкземплярыТехники', db_column='id_экземпляра_техники',
                                               verbose_name='Экземпляр техники')
@@ -413,10 +428,11 @@ class Характеристики(models.Model):
 class ХарактеристикиМодели(models.Model):
     id_характеристики_модели = models.AutoField(primary_key=True)
     id_характеристики = models.ForeignKey('Характеристики', db_column='id_характеристики',
-                                          verbose_name='название характеристики')
+                                          verbose_name='название характери  стики')
     id_модели_техники = models.ForeignKey('МоделиТехники', db_column='id_модели_техники',
                                           verbose_name='название модели техники')
-    значение = models.DecimalField(max_digits=10, decimal_places=4, blank=True, null=True)
+    значение = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True,
+                                   validators=[MinValueValidator(0, 'Убедитесь, что это значение больше нуля')])
 
     def __str__(self):
         return '{0} {1} {2}'.format(self.id_модели_техники.название, self.id_характеристики.название, self.значение)
@@ -428,21 +444,32 @@ class ХарактеристикиМодели(models.Model):
         verbose_name_plural = "характеристики модели"
 
 
+def validate_count_ex_tech(value):
+    exTech = ЭкземплярыТехники.objects.filter(id_техники_по_накладной=value).count()
+    maxPoNakl = ТехникаПоНакладной.objects.get(id_техники_по_накладной=value).количество
+    print(value)
+    print(exTech)
+    print(maxPoNakl)
+    if maxPoNakl <= exTech:
+        raise ValidationError('Нельзя оформить больше экземпляров чем куплено')
+
+
 class ЭкземплярыТехники(models.Model):
     id_экземпляра_техники = models.AutoField(primary_key=True)
+    id_техники_по_накладной = models.ForeignKey('ТехникаПоНакладной', db_column='id_техники_по_накладной',
+                                                verbose_name="Техника по накладной",
+                                                validators=[validate_count_ex_tech])
     id_еденицы_техники = models.ForeignKey('ЕденицыТехники', db_column='id_еденицы_техники',
                                            verbose_name="Еденица техники")
     заводской_код = models.CharField(max_length=20, blank=True, null=True)
     инвентарный_номер = models.CharField(max_length=20)
-    id_техники_по_накладной = models.ForeignKey('ТехникаПоНакладной', db_column='id_техники_по_накладной',
-                                                verbose_name="Техника по накладной")
     дата_гарантии = models.DateField(blank=True, null=True)
 
     def __str__(self):
         return '{0} {1} {2} {3:%d-%m-%Y}'.format(self.id_техники_по_накладной.id_накладной.номер_накладной,
-                                        self.id_техники_по_накладной.id_модели_техники,
-                                        self.инвентарный_номер,
-                                        self.дата_гарантии)
+                                                 self.id_техники_по_накладной.id_модели_техники,
+                                                 self.инвентарный_номер,
+                                                 self.дата_гарантии)
 
     class Meta:
         db_table = 'ЭкземплярыТехники'

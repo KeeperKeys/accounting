@@ -7,7 +7,7 @@ from django.shortcuts import render_to_response, RequestContext
 #     Списания, СписаннаяТехника
 import accounting.models
 
-import csv
+import _csv as csv
 from django.http import HttpResponse
 
 
