@@ -10,7 +10,7 @@ from accounting.models import Должности, Адреса, ЕденицыИ
 
 
 class АдресаАдмин(admin.ModelAdmin):
-    list_display = ('country', 'city', 'id_типа_улицы', 'street', 'house', 'apartment')
+    list_display = ('country', 'city', 'id_типа_улицы', 'street', 'house', 'apartment', 'belongs')
     form = АдресаФорм
 
     def country(self, obj):
@@ -31,14 +31,38 @@ class АдресаАдмин(admin.ModelAdmin):
         else:
             return ""
 
+    def belongs(self, obj):
+        id_адреса = obj.id_адреса
+        providers = Поставщики.objects.filter(id_адреса=id_адреса)
+        employees = Сотрудники.objects.filter(id_адреса=id_адреса)
+        if providers:
+            res = ""
+            count = 0
+            for i in providers:
+                res+=str(i)+", "
+                count+=1
+            return 'Поставщики: '+ res[:-2] if count>1 else 'Поставщик: '+ res[:-2]
+        elif employees:
+            res = ""
+            count = 0
+            for i in employees:
+                res+=str(i)+", "
+                count+=1
+            print(res[:-2])
+            return 'Сотрудники: '+ res[:-2] if count>1 else 'Сотрудники: '+ res[:-2]
+        else:
+            return None
+
     country.short_description = 'Страна'
     city.short_description = 'Город'
     street.short_descriptor = 'Улица'
     house.short_descriptor = 'Дом'
     apartment.short_descriptor = 'Квартира'
+    belongs.short_description = 'Принадлежит'
 
 
 class ТелефоныАдмин(admin.ModelAdmin):
+    list_display = ('телефон','belongs')
     form = ТелефоныФорм
 
     def changelist_view(self, request, extra_context=None):
@@ -46,7 +70,34 @@ class ТелефоныАдмин(admin.ModelAdmin):
         extra_context['some_var'] = 'This is what I want to show'
         return super(ТелефоныАдмин, self).changelist_view(request, extra_context=extra_context)
 
-        # def make_pdf
+    def belongs(self, obj):
+        id_телефона = obj.id_телефона
+        providers = Поставщики.objects.filter(id_телефона=id_телефона)
+        employees = Сотрудники.objects.filter(id_телефона=id_телефона)
+        if providers:
+            res = ""
+            count = 0
+            for i in providers:
+                res+=str(i)+", "
+                count+=1
+            return 'Поставщики: '+ res[:-2] if count>1 else 'Поставщик: '+ res[:-2]
+        elif employees:
+            res = ""
+            count = 0
+            for i in employees:
+                res+=str(i)+", "
+                count+=1
+            print(res[:-2])
+            return 'Сотрудники: '+ res[:-2] if count>1 else 'Сотрудники: '+ res[:-2]
+        else:
+            return None
+
+    belongs.short_description = 'Принадлежит'
+
+#         provider = Поставщики.objects.filter(id_телефона=value)
+#     if provider:
+#         raise ValidationError('Данный номер указан у поставщика {0}'.format(*provider))
+
 
 
 class ДолжностиАдмин(admin.ModelAdmin):
@@ -134,11 +185,10 @@ class НакладныеАдмин(admin.ModelAdmin):
 
 
 class ЭкземплярыТехникиАдмин(admin.ModelAdmin):
-    # list_display = ('_модель_техники', "_еденица_техники", 'инвентарный_номер', '_накладная', 'заводской_код',
-    #                 'дата_гарантии',)
-    list_display = ("id_еденицы_техники", '_модель_техники', 'инвентарный_номер', '_накладная', 'заводской_код',
-                     'дата_гарантии',)
+    list_display = ('_модель_техники', "id_еденицы_техники", 'инвентарный_номер', '_накладная', 'заводской_код',
+                     'дата_гарантии',"_decommissioned",)#'number_of_orders',)
     search_fields = ('инвентарный_номер',)
+    ordering = ('дата_гарантии',)
 
     def _модель_техники(self, obj):
         return str(obj.id_техники_по_накладной.id_модели_техники)
@@ -149,9 +199,34 @@ class ЭкземплярыТехникиАдмин(admin.ModelAdmin):
     def _еденица_техники(self, obj):
         return str(obj.id_еденицы_техники)
 
+    def _decommissioned(self, obj):
+        id_экземпляра = obj.id_экземпляра_техники
+        decommissioned = СписаннаяТехника.objects.filter(id_экземпляра_техники=id_экземпляра)
+        if decommissioned:
+            return "Да"
+        else:
+            return "Нет"
+
+    # def queryset(self, request):
+    #     # qs = super(ЭкземплярыТехникиАдмин, self).queryset(request)
+    #     # qs = qs.annotate(models.Count('списаннаятехника'))
+    #     # return qs
+    #     return ЭкземплярыТехники.objects.annotate(artist_count=models.Count('artists'))
+    #
+    # def number_of_orders(self, obj):
+    #     id_экземпляра = obj.id_экземпляра_техники
+    #     decommissioned = СписаннаяТехника.objects.filter(id_экземпляра_техники=id_экземпляра)
+    #     if decommissioned:
+    #         return "Да"
+    #     else:
+    #         return "Нет"
+    #     # return obj.order__count
+    # number_of_orders.admin_order_field = 'order__count'
+
     _модель_техники.short_description = 'Модель техники'
     _накладная.short_description = "Накладная"
     _еденица_техники.short_description = "Еденица техники"
+    _decommissioned.short_description = "Списана"
 
 
 class ТехникаПоНакладнойАдмин(admin.ModelAdmin):
@@ -164,6 +239,10 @@ class ПрограммныеПродуктыАдмин(admin.ModelAdmin):
 
 class ПППоНакладнойАдмин(admin.ModelAdmin):
     list_display = ('id_накладной', 'id_пп', 'количество', 'цена_за_еденицу')
+
+
+class КомнатыАдмин(admin.ModelAdmin):
+    list_display = ('номер_комнаты',)
 
 
 class УстановленныеППАдмин(admin.ModelAdmin):
@@ -214,7 +293,7 @@ admin.site.register(Производители, ПроизводителиАдм
 admin.site.register(ТипыУлиц, ТипыУлицАдмин)
 admin.site.register(ХарактеристикиМодели, ХарактеристикиМоделиАдмин)
 admin.site.register(ТипыТехники, ТипыТехникиАдмин)
-admin.site.register(Комнаты)
+admin.site.register(Комнаты, КомнатыАдмин)
 admin.site.register(Рабочиеместа, РабочиеместаАдмин)
 admin.site.register(Комплекты, КомплектыАдмин)
 admin.site.register(НазванияКомплекта)

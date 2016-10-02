@@ -3,6 +3,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
+from _datetime import date, datetime
 
 
 class Адреса(models.Model):
@@ -29,10 +30,14 @@ class Адреса(models.Model):
 
 class Должности(models.Model):
     id_должности = models.AutoField(primary_key=True)
-    название = models.CharField(max_length=40, blank=True, null=True, help_text='Введите название должности')
+    название = models.CharField(max_length=40, unique=True, help_text='Введите название должности')
 
     def __str__(self):
         return self.название
+
+    def save(self, *args, **kwargs):
+        self.название = self.название[0:1].upper() + self.название[1:].lower()
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'Должности'
@@ -42,11 +47,15 @@ class Должности(models.Model):
 
 class ЕденицыИзмерения(models.Model):
     id_еденицы_измерения = models.AutoField(primary_key=True)
-    название = models.CharField(max_length=30, blank=True, null=True)
-    сокращенное_название = models.CharField(max_length=10, blank=True, null=True)
+    название = models.CharField(max_length=30, unique=True)
+    сокращенное_название = models.CharField(max_length=10)
 
     def __str__(self):
         return "{0} ({1})".format(self.название, self.сокращенное_название)
+
+    def save(self, *args, **kwargs):
+        self.название = self.название[0:1].upper() + self.название[1:].lower()
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'ЕденицыИзмерения'
@@ -71,10 +80,14 @@ class ЕденицыТехники(models.Model):
 
 class НазванияЕденицыТехники(models.Model):
     id_названия_еденицы_техники = models.AutoField(primary_key=True)
-    название = models.CharField(max_length=40, blank=True, null=True)
+    название = models.CharField(max_length=40, unique=True)
 
     def __str__(self):
         return self.название
+
+    def save(self, *args, **kwargs):
+        self.название = self.название[0:1].upper() + self.название[1:].lower()
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'НазванияЕденицыТехники'
@@ -112,10 +125,14 @@ class Комплекты(models.Model):
 
 class НазванияКомплекта(models.Model):
     id_названия_комплекта = models.AutoField(primary_key=True)
-    название = models.CharField(max_length=40, blank=True, null=True)
+    название = models.CharField(max_length=40, unique=True)
 
     def __str__(self):
         return self.название
+
+    def save(self, *args, **kwargs):
+        self.название = self.название[0:1].upper() + self.название[1:].lower()
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'НазванияКомплекта'
@@ -124,7 +141,7 @@ class НазванияКомплекта(models.Model):
 
 
 class МоделиТехники(models.Model):
-    "добавить свзяь многие ко многим"
+    # добавить связь многие ко многим или нет...
     id_модели_техники = models.AutoField(primary_key=True)
     название = models.CharField(max_length=100)
     id_производителя = models.ForeignKey('Производители', db_column='id_производителя', verbose_name='Производитель')
@@ -134,15 +151,25 @@ class МоделиТехники(models.Model):
     def __str__(self):
         return '{0} {1} {2}'.format(self.название, self.id_производителя.название, self.id_типа_техники.название)
 
+    def save(self, *args, **kwargs):
+        self.название = self.название[0:1].upper() + self.название[1:].lower()
+        super().save(*args, **kwargs)
+
     class Meta:
         db_table = 'МоделиТехники'
         verbose_name = 'модель техники'
         verbose_name_plural = 'модели техники'
 
+def validate_date_naklad(value):
+    if value>date.today():
+        raise ValidationError('Нельзя указать дату накладной больше сегодняшней')
+    elif value<date(1970,1,1):
+        raise ValidationError('Дата накладной должна быть старше 1 января 1970')
+
 
 class Накладные(models.Model):
     id_накладной = models.AutoField(primary_key=True)
-    дата_поставки = models.DateField()
+    дата_поставки = models.DateField(validators=[validate_date_naklad])
     id_поставщика = models.ForeignKey('Поставщики', db_column='id_поставщика', verbose_name='Поставщик')
     номер_накладной = models.CharField(max_length=20, unique=True)
 
@@ -175,16 +202,27 @@ class ПППоНакладной(models.Model):
         verbose_name = 'пограммный продукт по накладной'
         verbose_name_plural = 'программные продукты по накладной'
 
+def validate_phone_provider(value):
+    employee = Сотрудники.objects.filter(id_телефона=value)
+    if employee:
+        raise ValidationError('Данный номер указан у сотрудника {0}'.format(*employee))
+
+def validate_address_provider(value):
+    employee = Сотрудники.objects.filter(id_адреса=value)
+    if employee:
+        raise ValidationError('Данный адрес указан у сотрудника {0}'.format(*employee))
 
 class Поставщики(models.Model):
     id_поставщика = models.AutoField(primary_key=True)
-    id_адреса = models.ForeignKey('Адреса', db_column='id_адреса', verbose_name='Адрес')
-    id_телефона = models.ForeignKey('Телефоны', db_column='id_телефона', verbose_name='Телефон')
+    id_адреса = models.ForeignKey('Адреса', db_column='id_адреса', verbose_name='Адрес',
+                                  validators=[validate_address_provider])
+    id_телефона = models.ForeignKey('Телефоны', db_column='id_телефона', verbose_name='Телефон',
+                                    validators=[validate_phone_provider])
     id_типа_организации = models.ForeignKey('ТипыОрганизаций', db_column='id_типа_организации',
                                             verbose_name='Тип организации')
     другие_контактные_данные = models.TextField(blank=True, null=True)
     комментарий = models.TextField(blank=True, null=True)
-    название = models.CharField(max_length=100)
+    название = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.id_типа_организации.аббревиатура + ' "' + self.название + '"'
@@ -203,6 +241,10 @@ class ПрограммныеПродукты(models.Model):
     def __str__(self):
         return "{0} {1}".format(self.id_типа_пп, self.название)
 
+    def save(self, *args, **kwargs):
+        self.название = self.название[0:1].upper() + self.название[1:].lower()
+        super().save(*args, **kwargs)
+
     class Meta:
         db_table = 'ПрограммныеПродукты'
         verbose_name = 'программный продукт'
@@ -215,6 +257,10 @@ class Производители(models.Model):
 
     def __str__(self):
         return self.название
+
+    def save(self, *args, **kwargs):
+        self.название = self.название[0:1].upper() + self.название[1:].lower()
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'Производители'
@@ -235,6 +281,24 @@ class Рабочиеместа(models.Model):
         verbose_name = 'рабочее место'
         verbose_name_plural = 'рабочие места'
 
+def validate_date_birthday(value):
+    timetuple = datetime.now().timetuple()[:3]
+    if value>date(timetuple[0]-14,timetuple[1], timetuple[2]):
+        raise ValidationError('В соответствии со ст. 188 КЗоТ Украины не допускается использование труда '
+                              'лиц не достигших 14 лет')
+    elif value<date(timetuple[0]-100,timetuple[1], timetuple[2]):
+        raise ValidationError('Возраст сотрудника должен быть меньше 100 лет')
+
+def validate_phone_employee(value):
+    provider = Поставщики.objects.filter(id_телефона=value)
+    if provider:
+        raise ValidationError('Данный номер указан у поставщика {0}'.format(*provider))
+
+def validate_address_employee(value):
+    provider = Поставщики.objects.filter(id_адреса=value)
+    if provider:
+        raise ValidationError('Данный адрес указан у поставщика {0}'.format(*provider))
+
 
 class Сотрудники(models.Model):
     Полы = (
@@ -246,15 +310,29 @@ class Сотрудники(models.Model):
     фамилия = models.CharField(max_length=30)
     имя = models.CharField(max_length=30)
     отчество = models.CharField(max_length=20)
-    дата_рождения = models.DateField(blank=True, null=True)
+    дата_рождения = models.DateField(validators=[validate_date_birthday])
     id_должности = models.ForeignKey('Должности', db_column='id_должности', verbose_name='Должность')
     id_рабочего_места = models.ForeignKey('Рабочиеместа', db_column='id_рабочего_места', verbose_name='Рабочее место')
     пол = models.CharField(max_length=1, blank=True, null=True, choices=Полы)
-    id_телефона = models.ForeignKey('Телефоны', db_column='id_телефона', verbose_name='Телефон')
-    id_адреса = models.ForeignKey('Адреса', db_column='id_адреса', verbose_name='Адрес')
+    id_телефона = models.ForeignKey('Телефоны', db_column='id_телефона', verbose_name='Телефон',
+                                    validators=[validate_phone_employee])
+    id_адреса = models.ForeignKey('Адреса', db_column='id_адреса', verbose_name='Адрес',
+                                  validators=[validate_address_employee])
 
     def __str__(self):
         return self.фамилия + ' ' + self.имя[0] + '. ' + self.отчество[0] + '.'
+
+    # def clean(self):
+    #     cleaned_data = super(Сотрудники, self).clean()
+    #     if
+    #     return cleaned_data
+
+    def save(self, *args, **kwargs):
+        self.фамилия = self.фамилия[0:1].upper() + self.фамилия[1:].lower()
+        self.имя = self.имя[0:1].upper() + self.имя[1:].lower()
+        self.отчество = self.отчество[0:1].upper() + self.отчество[1:].lower()
+
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'Сотрудники'
@@ -296,7 +374,7 @@ class СписаннаяТехника(models.Model):
 
 class Телефоны(models.Model):
     id_телефона = models.AutoField(primary_key=True)
-    телефон = models.CharField(max_length=100)
+    телефон = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.телефон
@@ -329,12 +407,17 @@ class ТехникаПоНакладной(models.Model):
 
 class ТипыОрганизаций(models.Model):
     id_типа_организации = models.AutoField(primary_key=True)
-    аббревиатура = models.CharField(max_length=5)
-    название = models.CharField(max_length=70)
+    аббревиатура = models.CharField(max_length=5, unique=True)
+    название = models.CharField(max_length=70, unique=True)
 
     def __str__(self):
         # return self.название + ' (' + self.аббревиатура + ')'
         return self.аббревиатура
+
+    def save(self, *args, **kwargs):
+        self.название = self.название[0:1].upper() + self.название[1:].lower()
+        self.аббревиатура = self.аббревиатура.upper()
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'ТипыОрганизаций'
@@ -344,10 +427,14 @@ class ТипыОрганизаций(models.Model):
 
 class ТипыПП(models.Model):
     id_типа_пп = models.AutoField(db_column='id_типа_ПП', primary_key=True)
-    название = models.CharField(max_length=80, blank=True, null=True)
+    название = models.CharField(max_length=80, unique=True)
 
     def __str__(self):
         return self.название
+
+    def save(self, *args, **kwargs):
+        self.название = self.название[0:1].upper() + self.название[1:].lower()
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'ТипыПП'
@@ -357,10 +444,14 @@ class ТипыПП(models.Model):
 
 class ТипыТехники(models.Model):
     id_типа_техники = models.AutoField(primary_key=True)
-    название = models.CharField(max_length=60)
+    название = models.CharField(max_length=60, unique=True)
 
     def __str__(self):
         return self.название
+
+    def save(self, *args, **kwargs):
+        self.название = self.название[0:1].upper() + self.название[1:].lower()
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'ТипыТехники'
@@ -370,11 +461,16 @@ class ТипыТехники(models.Model):
 
 class ТипыУлиц(models.Model):
     id_типа_улицы = models.AutoField(primary_key=True)
-    название = models.CharField(max_length=20)
-    сокращенное_название = models.CharField(max_length=4)
+    название = models.CharField(max_length=20, unique=True)
+    сокращенное_название = models.CharField(max_length=4, help_text="Без точки в конце", unique=True)
 
     def __str__(self):
         return "{0} ({1})".format(self.название, self.сокращенное_название)
+
+    def save(self, *args, **kwargs):
+        self.название = self.название[0:1].upper() + self.название[1:].lower()
+        self.сокращенное_название = self.сокращенное_название.lower()
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'ТипыУлиц'
@@ -385,9 +481,6 @@ class ТипыУлиц(models.Model):
 def validate_count_pp(value):
     instPP = УстановленныеПП.objects.filter(id_пп_по_накладной=value).count()
     maxPoNakl = ПППоНакладной.objects.get(id_пп_по_накладной=value).количество
-    print(value)
-    print(instPP)
-    print(maxPoNakl)
     if maxPoNakl <= instPP:
         raise ValidationError('Нельзя установить ПП в количестве больше купленных')
 
@@ -412,12 +505,16 @@ class УстановленныеПП(models.Model):
 
 class Характеристики(models.Model):
     id_характеристики = models.AutoField(primary_key=True)
-    название = models.CharField(max_length=30)
+    название = models.CharField(max_length=30, unique=True)
     id_еденицы_измерения = models.ForeignKey('ЕденицыИзмерения', db_column='id_еденицы_измерения',
                                              verbose_name='Еденицы измерения')
 
     def __str__(self):
         return self.название
+
+    def save(self, *args, **kwargs):
+        self.название = self.название[0:1].upper() + self.название[1:].lower()
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'Характеристики'
@@ -431,7 +528,7 @@ class ХарактеристикиМодели(models.Model):
                                           verbose_name='название характери  стики')
     id_модели_техники = models.ForeignKey('МоделиТехники', db_column='id_модели_техники',
                                           verbose_name='название модели техники')
-    значение = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True,
+    значение = models.DecimalField(max_digits=10, decimal_places=2,
                                    validators=[MinValueValidator(0, 'Убедитесь, что это значение больше нуля')])
 
     def __str__(self):
@@ -447,12 +544,14 @@ class ХарактеристикиМодели(models.Model):
 def validate_count_ex_tech(value):
     exTech = ЭкземплярыТехники.objects.filter(id_техники_по_накладной=value).count()
     maxPoNakl = ТехникаПоНакладной.objects.get(id_техники_по_накладной=value).количество
-    print(value)
-    print(exTech)
-    print(maxPoNakl)
     if maxPoNakl <= exTech:
-        raise ValidationError('Нельзя оформить больше экземпляров чем куплено')
+        raise ValidationError('Нельзя оформить больше экземпляров чем куплено.')
 
+def validate_warranty_date(value):
+    print(value)
+    if value<=date.today():
+        print(2)
+        raise ValidationError('Дата гарантии должна быть больше сегодняшней даты.')
 
 class ЭкземплярыТехники(models.Model):
     id_экземпляра_техники = models.AutoField(primary_key=True)
@@ -463,7 +562,7 @@ class ЭкземплярыТехники(models.Model):
                                            verbose_name="Еденица техники")
     заводской_код = models.CharField(max_length=20, blank=True, null=True)
     инвентарный_номер = models.CharField(max_length=20)
-    дата_гарантии = models.DateField(blank=True, null=True)
+    дата_гарантии = models.DateField(blank=True, null=True, validators=[validate_warranty_date])
 
     def __str__(self):
         return '{0} {1} {2} {3:%d-%m-%Y}'.format(self.id_техники_по_накладной.id_накладной.номер_накладной,

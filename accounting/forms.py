@@ -39,7 +39,7 @@ class АдресаФорм(forms.ModelForm):
 
 
 class ТелефоныФорм(forms.ModelForm):
-    country_code = forms.CharField(max_length=6, help_text="Введите код страны", label='Код страны')
+    country_code = forms.CharField(max_length=5, help_text="Введите код страны, начиная с +", label='Код страны')
     reg_oper_code = forms.CharField(max_length=5, help_text="Введите код региона/оператора",
                                     label='Код региона/оператора')
     phone = forms.CharField(max_length=9, help_text="Введете номер телефона", label='Телефон')
@@ -50,6 +50,13 @@ class ТелефоныФорм(forms.ModelForm):
             self.initial['country_code'] = self.instance.телефон.split('(')[0]
             self.initial['reg_oper_code'] = self.instance.телефон.split('(')[1].split(')')[0]
             self.initial['phone'] = self.instance.телефон.split(')')[1]
+
+    def clean(self, *args, **kwargs):
+        cleaned_data = super(ТелефоныФорм, self).clean()
+        телефон = self.data['country_code'] + '(' + self.data['reg_oper_code'] + ')' + self.data['phone']
+        if Телефоны.objects.filter(телефон=телефон).count() == 1:
+            raise forms.ValidationError("Такой телефон уже существует.")
+        return cleaned_data
 
     def save(self, commit=True):
         instance = super(ТелефоныФорм, self).save(commit=False)
