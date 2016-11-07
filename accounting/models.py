@@ -160,10 +160,11 @@ class МоделиТехники(models.Model):
         verbose_name = 'модель техники'
         verbose_name_plural = 'модели техники'
 
+
 def validate_date_naklad(value):
-    if value>date.today():
+    if value > date.today():
         raise ValidationError('Нельзя указать дату накладной больше сегодняшней')
-    elif value<date(1970,1,1):
+    elif value < date(1970, 1, 1):
         raise ValidationError('Дата накладной должна быть старше 1 января 1970')
 
 
@@ -202,15 +203,18 @@ class ПППоНакладной(models.Model):
         verbose_name = 'пограммный продукт по накладной'
         verbose_name_plural = 'программные продукты по накладной'
 
+
 def validate_phone_provider(value):
     employee = Сотрудники.objects.filter(id_телефона=value)
     if employee:
         raise ValidationError('Данный номер указан у сотрудника {0}'.format(*employee))
 
+
 def validate_address_provider(value):
     employee = Сотрудники.objects.filter(id_адреса=value)
     if employee:
         raise ValidationError('Данный адрес указан у сотрудника {0}'.format(*employee))
+
 
 class Поставщики(models.Model):
     id_поставщика = models.AutoField(primary_key=True)
@@ -281,18 +285,21 @@ class Рабочиеместа(models.Model):
         verbose_name = 'рабочее место'
         verbose_name_plural = 'рабочие места'
 
+
 def validate_date_birthday(value):
     timetuple = datetime.now().timetuple()[:3]
-    if value>date(timetuple[0]-14,timetuple[1], timetuple[2]):
+    if value > date(timetuple[0] - 14, timetuple[1], timetuple[2]):
         raise ValidationError('В соответствии со ст. 188 КЗоТ Украины не допускается использование труда '
                               'лиц не достигших 14 лет')
-    elif value<date(timetuple[0]-100,timetuple[1], timetuple[2]):
+    elif value < date(timetuple[0] - 100, timetuple[1], timetuple[2]):
         raise ValidationError('Возраст сотрудника должен быть меньше 100 лет')
+
 
 def validate_phone_employee(value):
     provider = Поставщики.objects.filter(id_телефона=value)
     if provider:
         raise ValidationError('Данный номер указан у поставщика {0}'.format(*provider))
+
 
 def validate_address_employee(value):
     provider = Поставщики.objects.filter(id_адреса=value)
@@ -341,13 +348,13 @@ class Сотрудники(models.Model):
 
 
 class Списания(models.Model):
-    id_списание = models.AutoField(primary_key=True)
+    id_списания = models.AutoField(primary_key=True)
     дата = models.DateField()
     id_сотрудника = models.ForeignKey('Сотрудники', db_column='id_сотрудника', verbose_name='Сотрудник')
-    заголовок = models.CharField(max_length=50)
+    причина = models.CharField(max_length=500)
 
     def __str__(self):
-        return "{0} {1:%d-%m-%Y}".format(self.id_сотрудника, self.дата)
+        return "{1:%d-%m-%Y} {0}".format(self.id_сотрудника, self.дата)
 
     class Meta:
         db_table = 'Списания'
@@ -355,21 +362,21 @@ class Списания(models.Model):
         verbose_name_plural = 'списания'
 
 
-class СписаннаяТехника(models.Model):
-    id_списанной_техники = models.AutoField(primary_key=True)
-    id_экземпляра_техники = models.ForeignKey('ЭкземплярыТехники', db_column='id_экземпляра_техники',
-                                              verbose_name='Экземпляр техники')
-    id_списания = models.ForeignKey('Списания', db_column='id_списания', verbose_name="Списание")
-    причина = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return "{0} {1}".format(self.id_экземпляра_техники, self.id_списания)
-
-    class Meta:
-        db_table = 'СписаннаяТехника'
-        unique_together = (('id_экземпляра_техники', 'id_списания'),)
-        verbose_name = 'списанная техника'
-        verbose_name_plural = 'списанная техника'
+# class СписаннаяТехника(models.Model):
+#     id_списанной_техники = models.AutoField(primary_key=True)
+#     id_экземпляра_техники = models.ForeignKey('ЭкземплярыТехники', db_column='id_экземпляра_техники',
+#                                               verbose_name='Экземпляр техники')
+#     id_списания = models.ForeignKey('Списания', db_column='id_списания', verbose_name="Списание")
+#     причина = models.TextField(blank=True, null=True)
+#
+#     def __str__(self):
+#         return "{0} {1}".format(self.id_экземпляра_техники, self.id_списания)
+#
+#     class Meta:
+#         db_table = 'СписаннаяТехника'
+#         unique_together = (('id_экземпляра_техники', 'id_списания'),)
+#         verbose_name = 'списанная техника'
+#         verbose_name_plural = 'списанная техника'
 
 
 class Телефоны(models.Model):
@@ -547,11 +554,11 @@ def validate_count_ex_tech(value):
     if maxPoNakl <= exTech:
         raise ValidationError('Нельзя оформить больше экземпляров чем куплено.')
 
+
 def validate_warranty_date(value):
-    print(value)
-    if value<=date.today():
-        print(2)
+    if value <= date.today():
         raise ValidationError('Дата гарантии должна быть больше сегодняшней даты.')
+
 
 class ЭкземплярыТехники(models.Model):
     id_экземпляра_техники = models.AutoField(primary_key=True)
@@ -563,6 +570,8 @@ class ЭкземплярыТехники(models.Model):
     заводской_код = models.CharField(max_length=20, blank=True, null=True)
     инвентарный_номер = models.CharField(max_length=20)
     дата_гарантии = models.DateField(blank=True, null=True, validators=[validate_warranty_date])
+    id_списания = models.ForeignKey('Списания', db_column='id_списания', verbose_name="Списания",
+                                    blank=True, null=True)
 
     def __str__(self):
         return '{0} {1} {2} {3:%d-%m-%Y}'.format(self.id_техники_по_накладной.id_накладной.номер_накладной,

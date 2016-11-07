@@ -53,6 +53,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
 )
 
+
 # TEMPLATE_CONTEXT_PROCESSORS = (
 #     "django.contrib.auth.context_processors.auth",
 #     "django.template.context_processors.debug",
@@ -75,9 +76,9 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS' : {
             'context_processors': [
+                "django.contrib.auth.context_processors.auth",
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
         },

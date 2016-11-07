@@ -222,11 +222,11 @@ def sample_page(request, model_title):
     elif res == 'ЭкземплярыТехники':
         response['Content-Disposition'] = 'attachment; filename="EquipmentItems.csv"'
         writer.writerow(['id экземпляра техники', 'Единица техники', 'Заводской код', 'Инвентарный номер',
-                         'Техника по накладной', 'Дата гарантии'])
+                         'Техника по накладной', 'Дата гарантии', 'Списание'])
         model = accounting.models.ЭкземплярыТехники
         for obj in model.objects.all().order_by('id_экземпляра_техники'):
             writer.writerow([obj.id_экземпляра_техники, obj.id_еденицы_техники, obj.заводской_код,
-                             obj.инвентарный_номер, obj.id_техники_по_накладной, obj.дата_гарантии])
+                             obj.инвентарный_номер, obj.id_техники_по_накладной, obj.дата_гарантии, obj.id_списания])
 
     return response
 

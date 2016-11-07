@@ -5,16 +5,11 @@
     {{ block.super }}
     <script type="text/javascript" charset=“utf-8”>
                 (function($) { $(document).ready(function() {
-{#         for wpadmin           #}
-                                        $(".paginator").after('<div class="submit-row"><input type="submit" ' +
+                    $(".paginator").after('<div class="submit-row"><input type="submit" ' +
                                                 'value="Печать" formaction="csv/" style="display: inline-block; float: right; vertical-align: middle; margin-top: 1.2%"></div>');
+                    $('.field-id_еденицы_техники').css({'white-space': 'normal'});
                 });
                 })(django.jQuery);
 
-{#          without wpadmin #}
-{#    $(".paginator").after('<div class="submit-row"><input type="submit" ' +#}
-{#                                                'value="Печать" formaction="csv/" style="float: right;"></div>');#}
-{#                });#}
-{#                })(django.jQuery);#}
         </script>
 {% endblock %}
